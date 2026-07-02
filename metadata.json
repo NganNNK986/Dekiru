@@ -1,0 +1,8 @@
+{
+  "name": "Sakura Vocab",
+  "description": "A Japanese vocabulary learning app with visual mnemonics and deep contextual learning. Features a Sakura Light anime theme.",
+  "requestFramePermissions": [],
+  "majorCapabilities": [
+    "MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"
+  ]
+}

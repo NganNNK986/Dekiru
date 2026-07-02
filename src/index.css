@@ -1,0 +1,15 @@
+@import "tailwindcss";
+
+@theme {
+  --font-sans: "Nunito", ui-sans-serif, system-ui, sans-serif;
+  --font-serif: "Nunito", ui-serif, Georgia, serif;
+}
+
+body {
+  background-color: #fdf2f8; /* pink-50 */
+  background-image: 
+    radial-gradient(circle at 10% 20%, #fbcfe8 1px, transparent 1px),
+    radial-gradient(circle at 90% 80%, #fbcfe8 1px, transparent 1px);
+  background-size: 40px 40px;
+  @apply text-slate-800 font-sans;
+}
