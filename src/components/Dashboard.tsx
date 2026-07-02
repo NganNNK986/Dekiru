@@ -33,6 +33,8 @@ export default function Dashboard({
     [analytics.lessonProgress]
   );
 
+  const completedCount = analytics.totalMastered + analytics.totalKnown;
+
   const totalItems = vocabularyData.length + kanjiData.length;
   const chartData = useMemo(() => {
     return lessons.map(lesson => {
@@ -107,13 +109,13 @@ export default function Dashboard({
             <div className="flex items-center justify-between gap-4">
               <div>
                 <p className="text-sm uppercase tracking-[0.24em] text-slate-400">Đã thuộc</p>
-                <p className="mt-3 text-3xl font-black text-sky-600">{analytics.totalMastered}</p>
+                <p className="mt-3 text-3xl font-black text-sky-600">{analytics.totalKnown}</p>
               </div>
               <div className="flex items-center justify-center w-12 h-12 rounded-2xl bg-sky-100 text-sky-600">
                 <CheckCircle2 size={20} />
               </div>
             </div>
-            <p className="mt-4 text-sm text-slate-500">Tổng số mục bạn đã chinh phục trong hệ thống.</p>
+            <p className="mt-4 text-sm text-slate-500">Tổng số mục đã đạt mức Known trong hệ thống.</p>
           </CardContent>
         </Card>
 
@@ -262,13 +264,13 @@ export default function Dashboard({
                       </p>
                     </div>
                     <span className="text-xs font-semibold uppercase tracking-[0.18em] text-pink-600 bg-pink-50 px-2 py-1 rounded-full">
-                      {lessonProgressById[lesson.id]?.masteredCount ?? 0}/{lessonItemCounts[lesson.id] ?? lessonProgressById[lesson.id]?.totalItems ?? 0} thuộc
+                      {((lessonProgressById[lesson.id]?.masteredCount ?? 0) + (lessonProgressById[lesson.id]?.knownCount ?? 0))}/{lessonItemCounts[lesson.id] ?? lessonProgressById[lesson.id]?.totalItems ?? 0} thuộc
                     </span>
                   </div>
                   <div className="h-3 bg-slate-100 rounded-full overflow-hidden mt-4">
                     <div
                       className="h-full bg-gradient-to-r from-pink-500 to-pink-400"
-                      style={{ width: `${Math.min(100, lessonProgressById[lesson.id]?.masteredCount && lessonItemCounts[lesson.id] ? (lessonProgressById[lesson.id].masteredCount / lessonItemCounts[lesson.id]) * 100 : 0)}%` }}
+                      style={{ width: `${Math.min(100, lessonProgressById[lesson.id] && lessonItemCounts[lesson.id] ? ((lessonProgressById[lesson.id].masteredCount + lessonProgressById[lesson.id].knownCount) / lessonItemCounts[lesson.id]) * 100 : 0)}%` }}
                     />
                   </div>
                 </CardContent>
