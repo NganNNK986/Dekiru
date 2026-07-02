@@ -268,7 +268,7 @@ export default function Dashboard({
                   <div className="h-3 bg-slate-100 rounded-full overflow-hidden mt-4">
                     <div
                       className="h-full bg-gradient-to-r from-pink-500 to-pink-400"
-                      style={{ width: `${Math.min(100, lessonProgressById[lesson.id]?.masteredCount && lessonProgressById[lesson.id]?.totalItems ? (lessonProgressById[lesson.id].masteredCount / lessonProgressById[lesson.id].totalItems) * 100 : 0)}%` }}
+                      style={{ width: `${Math.min(100, lessonProgressById[lesson.id]?.masteredCount && lessonItemCounts[lesson.id] ? (lessonProgressById[lesson.id].masteredCount / lessonItemCounts[lesson.id]) * 100 : 0)}%` }}
                     />
                   </div>
                 </CardContent>
