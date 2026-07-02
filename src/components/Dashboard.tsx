@@ -227,49 +227,7 @@ export default function Dashboard({
           </CardContent>
         </Card>
         
-        {/* Actions Column */}
-        <div className="col-span-1 flex flex-col gap-6">
-          {/* Starred Words Widget */}
-          <Card className="shadow-sm border-slate-100 flex-1 hover:border-yellow-300 hover:shadow-md transition-all">
-            <CardContent className="p-6 flex flex-col h-full justify-between">
-              <div>
-                <div className="w-10 h-10 bg-yellow-100 text-yellow-600 rounded-xl flex items-center justify-center mb-4">
-                  <Star size={20} className="fill-yellow-500" />
-                </div>
-                <h3 className="text-xl font-bold text-slate-800 mb-1">Mục đã lưu</h3>
-                <p className="text-slate-500 text-sm">Ôn tập từ vựng & Kanji bạn đã đánh dấu.</p>
-              </div>
-              <div className="mt-6">
-                <button
-                  onClick={onReviewStarred}
-                  disabled={starredCount === 0}
-                  className="w-full py-3 bg-yellow-50 text-yellow-700 font-bold rounded-xl hover:bg-yellow-100 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-                >
-                  {starredCount > 0 ? `Ôn tập ${starredCount} mục` : 'Chưa có mục nào'}
-                </button>
-              </div>
-            </CardContent>
-          </Card>
 
-          {/* Test Setup Widget */}
-          <Card className="shadow-sm border-slate-100 border bg-gradient-to-br from-pink-50 to-pink-100/50 hover:border-pink-300 transition-all">
-            <CardContent className="p-6">
-              <h3 className="text-lg font-bold flex items-center gap-2 text-pink-700 mb-2">
-                <Layers size={18} /> Kiểm tra tổng hợp
-              </h3>
-              <p className="text-pink-600/80 text-sm mb-4">
-                Tạo bài kiểm tra kết hợp từ nhiều bài học khác nhau.
-              </p>
-              <button
-                onClick={onSetupTest}
-                className="w-full px-4 py-2.5 bg-pink-500 text-white font-semibold rounded-xl hover:bg-pink-600 transition-all flex items-center gap-2 justify-center"
-              >
-                <PlayCircle size={18} />
-                Bắt đầu thiết lập
-              </button>
-            </CardContent>
-          </Card>
-        </div>
 
         {/* Lesson List */}
         <div className="col-span-1 md:col-span-3 space-y-4 mt-4">
