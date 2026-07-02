@@ -1,5 +1,5 @@
 import React, { useMemo } from 'react';
-import { BookOpen, Layers, PlayCircle, Sparkles, Star, PieChart as PieChartIcon, Brain, BarChart2 } from 'lucide-react';
+import { BookOpen, Layers, PlayCircle, Sparkles, Star, PieChart as PieChartIcon, Brain, BarChart2, CheckCircle2, Clock4 } from 'lucide-react';
 import { lessons, vocabularyData, kanjiData } from '../data';
 import { Card, CardContent } from './ui/Card';
 import { PieChart, Pie, Cell, Tooltip, ResponsiveContainer, Legend } from 'recharts';
@@ -23,10 +23,17 @@ export default function Dashboard({
   onStartSRS,
   onOpenAnalytics
 }: DashboardProps) {
-  const { getDueCount, getStarredIds } = useLearning();
+  const { getDueCount, getStarredIds, getAnalytics } = useLearning();
   const dueCount = getDueCount();
   const starredCount = getStarredIds('vocab').size + getStarredIds('kanji').size;
+  const analytics = getAnalytics();
 
+  const lessonProgressById = useMemo(
+    () => Object.fromEntries(analytics.lessonProgress.map((item) => [item.lessonId, item])),
+    [analytics.lessonProgress]
+  );
+
+  const totalItems = vocabularyData.length + kanjiData.length;
   const chartData = useMemo(() => {
     return lessons.map(lesson => {
       const vCount = vocabularyData.filter(v => v.lessonId === lesson.id).length;
@@ -53,6 +60,97 @@ export default function Dashboard({
           Hệ thống học tiếng Nhật thông minh với Spaced Repetition (FSRS/SM-2) & Active Recall.
         </p>
       </div>
+
+      <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4">
+        <Card className="bg-slate-950 text-white shadow-lg">
+          <CardContent className="p-5">
+            <div className="flex items-center justify-between gap-4">
+              <div>
+                <p className="text-sm uppercase tracking-[0.24em] text-slate-300">Ôn tập hôm nay</p>
+                <p className="mt-3 text-3xl font-black">{dueCount}</p>
+              </div>
+              <div className="flex items-center justify-center w-12 h-12 rounded-2xl bg-emerald-500/15 text-emerald-200">
+                <Clock4 size={20} />
+              </div>
+            </div>
+            <p className="mt-4 text-sm text-slate-400">Số mục đến hạn hôm nay để bạn duy trì lộ trình.</p>
+          </CardContent>
+        </Card>
+
+        <Card className="bg-white shadow-sm border-slate-100">
+          <CardContent className="p-5">
+            <div className="flex items-center justify-between gap-4">
+              <div>
+                <p className="text-sm uppercase tracking-[0.24em] text-slate-400">Mục đã lưu</p>
+                <p className="mt-3 text-3xl font-black text-amber-600">{starredCount}</p>
+              </div>
+              <div className="flex items-center justify-center w-12 h-12 rounded-2xl bg-amber-100 text-amber-600">
+                <Star size={20} />
+              </div>
+            </div>
+            <p className="mt-4 text-sm text-slate-500">Những mục bạn đã đánh dấu để ôn tập nhanh.</p>
+          </CardContent>
+        </Card>
+
+        <Card className="bg-white shadow-sm border-slate-100">
+          <CardContent className="p-5">
+            <div className="flex items-center justify-between gap-4">
+              <div>
+                <p className="text-sm uppercase tracking-[0.24em] text-slate-400">Đã thuộc</p>
+                <p className="mt-3 text-3xl font-black text-sky-600">{analytics.totalMastered}</p>
+              </div>
+              <div className="flex items-center justify-center w-12 h-12 rounded-2xl bg-sky-100 text-sky-600">
+                <CheckCircle2 size={20} />
+              </div>
+            </div>
+            <p className="mt-4 text-sm text-slate-500">Tổng số mục bạn đã chinh phục trong hệ thống.</p>
+          </CardContent>
+        </Card>
+
+        <Card className="bg-white shadow-sm border-slate-100">
+          <CardContent className="p-5">
+            <div className="flex items-center justify-between gap-4">
+              <div>
+                <p className="text-sm uppercase tracking-[0.24em] text-slate-400">Bài học</p>
+                <p className="mt-3 text-3xl font-black text-pink-600">{lessons.length}</p>
+              </div>
+              <div className="flex items-center justify-center w-12 h-12 rounded-2xl bg-pink-100 text-pink-600">
+                <BookOpen size={20} />
+              </div>
+            </div>
+            <p className="mt-4 text-sm text-slate-500">Số bài học hiện có trong chương trình học.</p>
+          </CardContent>
+        </Card>
+      </div>
+
+      <Card className="shadow-sm border-slate-100 hover:shadow-md transition-all">
+        <CardContent className="p-5 grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-3">
+          <button
+            onClick={onStartSRS}
+            className="w-full px-4 py-3 rounded-2xl bg-emerald-500 text-white font-semibold hover:bg-emerald-600 transition"
+          >
+            Ôn tập ngay
+          </button>
+          <button
+            onClick={() => onSelectLesson(lessons[0].id)}
+            className="w-full px-4 py-3 rounded-2xl bg-slate-900 text-white font-semibold hover:bg-slate-800 transition"
+          >
+            Bài học tiếp theo
+          </button>
+          <button
+            onClick={onReviewStarred}
+            className="w-full px-4 py-3 rounded-2xl bg-amber-100 text-amber-700 font-semibold hover:bg-amber-200 transition"
+          >
+            Mục đã lưu
+          </button>
+          <button
+            onClick={onOpenAnalytics}
+            className="w-full px-4 py-3 rounded-2xl bg-pink-50 text-pink-700 font-semibold hover:bg-pink-100 transition"
+          >
+            Xem thống kê
+          </button>
+        </CardContent>
+      </Card>
 
       {/* Main Action Banner: SRS Review Today */}
       <Card className="bg-gradient-to-r from-emerald-500 to-teal-600 text-white shadow-lg hover:shadow-xl transition-all">
@@ -186,12 +284,25 @@ export default function Dashboard({
                 onClick={() => onSelectLesson(lesson.id)}
               >
                 <CardContent className="p-6">
-                  <h4 className="text-lg font-bold text-slate-800 group-hover:text-pink-600 transition-colors mb-2">
-                    {lesson.title}
-                  </h4>
-                  <p className="text-slate-500 text-sm leading-relaxed">
-                    {lesson.description}
-                  </p>
+                  <div className="flex items-center justify-between gap-3 mb-3">
+                    <div>
+                      <h4 className="text-lg font-bold text-slate-800 group-hover:text-pink-600 transition-colors">
+                        {lesson.title}
+                      </h4>
+                      <p className="text-slate-500 text-sm leading-relaxed mt-1">
+                        {lesson.description}
+                      </p>
+                    </div>
+                    <span className="text-xs font-semibold uppercase tracking-[0.18em] text-pink-600 bg-pink-50 px-2 py-1 rounded-full">
+                      {lessonProgressById[lesson.id]?.masteredCount ?? 0}/{lessonProgressById[lesson.id]?.totalItems ?? 0} thuộc
+                    </span>
+                  </div>
+                  <div className="h-3 bg-slate-100 rounded-full overflow-hidden mt-4">
+                    <div
+                      className="h-full bg-gradient-to-r from-pink-500 to-pink-400"
+                      style={{ width: `${Math.min(100, lessonProgressById[lesson.id]?.masteredCount && lessonProgressById[lesson.id]?.totalItems ? (lessonProgressById[lesson.id].masteredCount / lessonProgressById[lesson.id].totalItems) * 100 : 0)}%` }}
+                    />
+                  </div>
                 </CardContent>
               </Card>
             ))}
