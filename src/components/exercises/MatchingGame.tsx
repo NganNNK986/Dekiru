@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import { ArrowLeft, RefreshCcw, Sparkles } from 'lucide-react';
 import { Vocabulary, KanjiWord } from '../../types';
 import { Card } from '../ui/Card';
@@ -11,6 +11,8 @@ interface MatchingGameProps {
 
 export default function MatchingGame({ items, onBack }: MatchingGameProps) {
   const { recordExerciseResult } = useLearning();
+  const itemsKey = useMemo(() => items.map(i => i.id).join(','), [items]);
+
   const [gameItems, setGameItems] = useState<Array<{ id: string; text: string; meaning: string; type: 'vocab' | 'kanji' }>>([]);
   const [leftTiles, setLeftTiles] = useState<Array<{ id: string; text: string }>>([]);
   const [rightTiles, setRightTiles] = useState<Array<{ id: string; text: string }>>([]);
@@ -23,7 +25,7 @@ export default function MatchingGame({ items, onBack }: MatchingGameProps) {
   const [moves, setMoves] = useState(0);
   const [finished, setFinished] = useState(false);
 
-  const initGame = () => {
+  const initGame = useCallback(() => {
     const subset = [...items].sort(() => 0.5 - Math.random()).slice(0, 6);
     const parsed = subset.map(i => ({
       id: i.id,
@@ -40,11 +42,11 @@ export default function MatchingGame({ items, onBack }: MatchingGameProps) {
     setMatchedIds(new Set());
     setMoves(0);
     setFinished(false);
-  };
+  }, [items]);
 
   useEffect(() => {
     initGame();
-  }, [items]);
+  }, [itemsKey, initGame]);
 
   const handleLeftClick = (id: string) => {
     if (matchedIds.has(id) || wrongPair) return;

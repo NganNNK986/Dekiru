@@ -22,6 +22,7 @@ type Question = {
 
 export default function MultipleChoiceQuiz({ title, words, kanjis, onBack }: MultipleChoiceQuizProps) {
   const { recordExerciseResult } = useLearning();
+  const [quizGeneration, setQuizGeneration] = useState(0);
 
   const itemTypeById = useMemo(() => {
     const map = new Map<string, 'vocab' | 'kanji'>();
@@ -30,30 +31,36 @@ export default function MultipleChoiceQuiz({ title, words, kanjis, onBack }: Mul
     return map;
   }, [words, kanjis]);
 
+  const itemsKey = useMemo(
+    () => [...words.map(w => w.id), ...kanjis.map(k => k.id)].join(','),
+    [words, kanjis]
+  );
+
   const questions = useMemo(() => {
     const allItems = [...words, ...kanjis];
     if (allItems.length < 4) return [];
-    
+
     return allItems.map(item => {
       const text = 'word' in item ? item.word : item.character;
       const furigana = 'furigana' in item ? item.furigana : undefined;
       const correctAnswer = item.meaning;
-      
+
       const otherItems = allItems.filter(i => i.id !== item.id);
       const shuffledOthers = otherItems.sort(() => 0.5 - Math.random()).slice(0, 3);
       const wrongAnswers = shuffledOthers.map(i => i.meaning);
-      
+
       const options = [correctAnswer, ...wrongAnswers].sort(() => 0.5 - Math.random());
-      
+
       return {
         id: item.id,
         text,
         furigana,
         options,
-        correctAnswer
+        correctAnswer,
       };
     }).sort(() => 0.5 - Math.random());
-  }, [words, kanjis]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps -- only regenerate when item set or user restarts
+  }, [itemsKey, quizGeneration]);
 
   const [currentIndex, setCurrentIndex] = useState(0);
   const [selectedOption, setSelectedOption] = useState<string | null>(null);
@@ -111,6 +118,7 @@ export default function MultipleChoiceQuiz({ title, words, kanjis, onBack }: Mul
                 setScore(0);
                 setSelectedOption(null);
                 setFinished(false);
+                setQuizGeneration(g => g + 1);
               }}
               className="px-6 py-3 bg-pink-50 text-pink-600 font-semibold rounded-xl hover:bg-pink-100 transition-colors flex items-center gap-2"
             >
