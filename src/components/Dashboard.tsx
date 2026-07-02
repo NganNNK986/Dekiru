@@ -45,6 +45,16 @@ export default function Dashboard({
     }).filter(data => data.value > 0);
   }, []);
 
+  const lessonItemCounts = useMemo(() => {
+    return Object.fromEntries(
+      lessons.map((lesson) => {
+        const vocabCount = vocabularyData.filter(v => v.lessonId === lesson.id).length;
+        const kanjiCount = kanjiData.filter(k => k.lessonId === lesson.id).length;
+        return [lesson.id, vocabCount + kanjiCount];
+      })
+    );
+  }, []);
+
   return (
     <div className="max-w-5xl mx-auto space-y-8 animate-in fade-in zoom-in-95 duration-500">
       
@@ -177,10 +187,10 @@ export default function Dashboard({
         </CardContent>
       </Card>
 
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+      <div className="space-y-6">
 
         {/* Analytics Dashboard */}
-        <Card className="col-span-1 md:col-span-2 shadow-sm border-slate-100">
+        <Card className="shadow-sm border-slate-100">
           <CardContent className="p-6">
             <div className="flex items-center justify-between mb-6">
               <h3 className="text-lg font-bold flex items-center gap-2 text-slate-800">
@@ -206,7 +216,7 @@ export default function Dashboard({
                     dataKey="value"
                     labelLine={false}
                   >
-                    {chartData.map((entry, index) => (
+                    {chartData.map((_entry: any, index: number) => (
                       <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
                     ))}
                   </Pie>
@@ -230,7 +240,7 @@ export default function Dashboard({
 
 
         {/* Lesson List */}
-        <div className="col-span-1 md:col-span-3 space-y-4 mt-4">
+        <div className="space-y-4">
           <h3 className="text-xl font-bold flex items-center gap-2 text-slate-800 px-1">
             <BookOpen className="text-pink-500" /> Danh sách bài học
           </h3>
@@ -252,7 +262,7 @@ export default function Dashboard({
                       </p>
                     </div>
                     <span className="text-xs font-semibold uppercase tracking-[0.18em] text-pink-600 bg-pink-50 px-2 py-1 rounded-full">
-                      {lessonProgressById[lesson.id]?.masteredCount ?? 0}/{lessonProgressById[lesson.id]?.totalItems ?? 0} thuộc
+                      {lessonProgressById[lesson.id]?.masteredCount ?? 0}/{lessonItemCounts[lesson.id] ?? lessonProgressById[lesson.id]?.totalItems ?? 0} thuộc
                     </span>
                   </div>
                   <div className="h-3 bg-slate-100 rounded-full overflow-hidden mt-4">
@@ -266,8 +276,6 @@ export default function Dashboard({
             ))}
           </div>
         </div>
-
-      </div>
     </div>
-  );
+  </div>);
 }
