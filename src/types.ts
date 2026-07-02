@@ -123,6 +123,9 @@ export interface ItemProgress {
   
   // Bookmarked
   isStarred: boolean;
+
+  /** Correct answers in exercises (2+ → "đã thuộc") */
+  exerciseCorrectCount: number;
   
   // Timestamps
   createdAt: string;

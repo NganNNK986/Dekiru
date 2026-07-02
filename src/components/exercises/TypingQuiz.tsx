@@ -1,8 +1,9 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useMemo } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { ArrowLeft, Check, X, HelpCircle, RefreshCcw } from 'lucide-react';
 import { Vocabulary, KanjiWord } from '../../types';
 import { Card } from '../ui/Card';
+import { useLearning } from '../../contexts/LearningContext';
 
 interface TypingQuizProps {
   items: Array<Vocabulary | KanjiWord>;
@@ -11,6 +12,7 @@ interface TypingQuizProps {
 }
 
 export default function TypingQuiz({ items, onBack, onFinish }: TypingQuizProps) {
+  const { recordExerciseResult } = useLearning();
   const [currentIndex, setCurrentIndex] = useState(0);
   const [input, setInput] = useState('');
   const [status, setStatus] = useState<'idle' | 'correct' | 'incorrect'>('idle');
@@ -46,6 +48,7 @@ export default function TypingQuiz({ items, onBack, onFinish }: TypingQuizProps)
     const isCorrect = cleanInput === cleanReading || cleanInput === expectedText;
     
     setStatus(isCorrect ? 'correct' : 'incorrect');
+    recordExerciseResult(currentItem.id, isVocab ? 'vocab' : 'kanji', isCorrect);
     setResults(prev => [...prev, { itemId: currentItem.id, correct: isCorrect }]);
 
     setTimeout(() => {

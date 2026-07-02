@@ -1,8 +1,9 @@
 import React, { useState, useMemo } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
-import { ArrowLeft, CheckCircle2, XCircle, RefreshCcw, Check, X } from 'lucide-react';
+import { ArrowLeft, RefreshCcw, Check, X } from 'lucide-react';
 import { Vocabulary, KanjiWord } from '../types';
-import { Card, CardContent } from './ui/Card';
+import { Card } from './ui/Card';
+import { useLearning } from '../contexts/LearningContext';
 
 interface MultipleChoiceQuizProps {
   title: string;
@@ -20,6 +21,15 @@ type Question = {
 };
 
 export default function MultipleChoiceQuiz({ title, words, kanjis, onBack }: MultipleChoiceQuizProps) {
+  const { recordExerciseResult } = useLearning();
+
+  const itemTypeById = useMemo(() => {
+    const map = new Map<string, 'vocab' | 'kanji'>();
+    for (const w of words) map.set(w.id, 'vocab');
+    for (const k of kanjis) map.set(k.id, 'kanji');
+    return map;
+  }, [words, kanjis]);
+
   const questions = useMemo(() => {
     const allItems = [...words, ...kanjis];
     if (allItems.length < 4) return [];
@@ -65,7 +75,11 @@ export default function MultipleChoiceQuiz({ title, words, kanjis, onBack }: Mul
     if (selectedOption) return;
     setSelectedOption(option);
     
-    if (option === currentQuestion.correctAnswer) {
+    const isCorrect = option === currentQuestion.correctAnswer;
+    const itemType = itemTypeById.get(currentQuestion.id) ?? 'vocab';
+    recordExerciseResult(currentQuestion.id, itemType, isCorrect);
+
+    if (isCorrect) {
       setScore(s => s + 1);
     }
 

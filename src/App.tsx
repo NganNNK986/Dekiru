@@ -35,6 +35,7 @@ type AppView =
 function MainApp() {
   const [view, setView] = useState<AppView>('dashboard');
   const [activeLessonId, setActiveLessonId] = useState<string | null>(null);
+  const [exerciseContext, setExerciseContext] = useState<'lesson' | 'starred'>('lesson');
   const [testLessonIds, setTestLessonIds] = useState<string[]>([]);
   const [testType, setTestType] = useState<'vocab' | 'kanji' | 'mixed'>('mixed');
   const [blurFurigana, setBlurFurigana] = useState(true);
@@ -43,6 +44,7 @@ function MainApp() {
 
   const handleSelectLesson = (id: string) => {
     setActiveLessonId(id);
+    setExerciseContext('lesson');
     setView('lesson');
   };
 
@@ -89,7 +91,11 @@ function MainApp() {
           <Dashboard 
             onSelectLesson={handleSelectLesson} 
             onSetupTest={() => setView('test-setup')} 
-            onReviewStarred={() => setView('starred-review')}
+            onReviewStarred={() => {
+              setActiveLessonId(null);
+              setExerciseContext('starred');
+              setView('starred-review');
+            }}
             onStartSRS={() => setView('srs-review')}
             onOpenAnalytics={() => setView('analytics')}
           />
@@ -182,7 +188,7 @@ function MainApp() {
           let words = [];
           let kanjis = [];
 
-          if (activeLessonId) {
+          if (exerciseContext === 'lesson' && activeLessonId) {
             const lesson = lessons.find((l) => l.id === activeLessonId);
             title = lesson ? `Trắc nghiệm: ${lesson.title}` : 'Trắc nghiệm';
             words = vocabularyData.filter((v) => v.lessonId === activeLessonId);
@@ -198,37 +204,37 @@ function MainApp() {
               title={title}
               words={words}
               kanjis={kanjis}
-              onBack={() => setView(activeLessonId ? 'lesson' : 'starred-review')}
+              onBack={() => setView(exerciseContext === 'starred' ? 'starred-review' : 'lesson')}
             />
           );
         })()}
 
         {view === 'typing' && (() => {
-          const items = activeLessonId
+          const items = exerciseContext === 'lesson' && activeLessonId
             ? [...vocabularyData.filter(v => v.lessonId === activeLessonId), ...kanjiData.filter(k => k.lessonId === activeLessonId)]
             : [...vocabularyData.filter(v => isStarred(v.id)), ...kanjiData.filter(k => isStarred(k.id))];
-          return <TypingQuiz items={items} onBack={() => setView(activeLessonId ? 'lesson' : 'starred-review')} />;
+          return <TypingQuiz items={items} onBack={() => setView(exerciseContext === 'starred' ? 'starred-review' : 'lesson')} />;
         })()}
 
         {view === 'fill-blank' && (() => {
-          const words = activeLessonId
+          const words = exerciseContext === 'lesson' && activeLessonId
             ? vocabularyData.filter(v => v.lessonId === activeLessonId)
             : vocabularyData.filter(v => isStarred(v.id));
-          return <FillBlankQuiz words={words} onBack={() => setView(activeLessonId ? 'lesson' : 'starred-review')} />;
+          return <FillBlankQuiz words={words} onBack={() => setView(exerciseContext === 'starred' ? 'starred-review' : 'lesson')} />;
         })()}
 
         {view === 'kanji-writing' && (() => {
-          const kanjis = activeLessonId
+          const kanjis = exerciseContext === 'lesson' && activeLessonId
             ? kanjiData.filter(k => k.lessonId === activeLessonId)
             : kanjiData.filter(k => isStarred(k.id));
-          return <KanjiWritingQuiz kanjis={kanjis} onBack={() => setView(activeLessonId ? 'lesson' : 'starred-review')} />;
+          return <KanjiWritingQuiz kanjis={kanjis} onBack={() => setView(exerciseContext === 'starred' ? 'starred-review' : 'lesson')} />;
         })()}
 
         {view === 'matching' && (() => {
-          const items = activeLessonId
+          const items = exerciseContext === 'lesson' && activeLessonId
             ? [...vocabularyData.filter(v => v.lessonId === activeLessonId), ...kanjiData.filter(k => k.lessonId === activeLessonId)]
             : [...vocabularyData.filter(v => isStarred(v.id)), ...kanjiData.filter(k => isStarred(k.id))];
-          return <MatchingGame items={items} onBack={() => setView(activeLessonId ? 'lesson' : 'starred-review')} />;
+          return <MatchingGame items={items} onBack={() => setView(exerciseContext === 'starred' ? 'starred-review' : 'lesson')} />;
         })()}
       </main>
     </div>

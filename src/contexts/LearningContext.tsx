@@ -17,6 +17,7 @@ import { processReview, buildReviewQueue, getDueCount, createDefaultProgress } f
 import { getWeakestItems } from '../engine/masteryEngine';
 import { computeAnalytics, updateDailyStats, computeLessonProgressWithMapping } from '../engine/analyticsEngine';
 import { planSession } from '../engine/sessionPlanner';
+import { processExerciseResult } from '../engine/exerciseEngine';
 import { vocabularyData, kanjiData, lessons } from '../data';
 
 interface LearningContextType {
@@ -30,6 +31,7 @@ interface LearningContextType {
   
   // Review actions
   recordReview: (itemId: string, itemType: 'vocab' | 'kanji', rating: ReviewRating, responseTimeMs?: number) => void;
+  recordExerciseResult: (itemId: string, itemType: 'vocab' | 'kanji', isCorrect: boolean) => void;
   
   // Bookmark
   toggleStar: (itemId: string, itemType: 'vocab' | 'kanji') => void;
@@ -155,6 +157,25 @@ export function LearningProvider({ children }: { children: React.ReactNode }) {
     });
   }, []);
 
+  const recordExerciseResult = useCallback((
+    itemId: string,
+    itemType: 'vocab' | 'kanji',
+    isCorrect: boolean
+  ) => {
+    setData(prev => {
+      const progress = getOrCreateProgress(prev, itemId, itemType);
+      const updatedProgress = processExerciseResult(progress, isCorrect);
+
+      return {
+        ...prev,
+        progress: {
+          ...prev.progress,
+          [itemId]: updatedProgress,
+        },
+      };
+    });
+  }, []);
+
   const toggleStar = useCallback((itemId: string, itemType: 'vocab' | 'kanji') => {
     setData(prev => {
       const progress = getOrCreateProgress(prev, itemId, itemType);
@@ -245,6 +266,7 @@ export function LearningProvider({ children }: { children: React.ReactNode }) {
     getProgress,
     getAllProgress,
     recordReview,
+    recordExerciseResult,
     toggleStar,
     isStarred: isStarredFn,
     getStarredIds,

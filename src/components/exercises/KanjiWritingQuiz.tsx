@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { ArrowLeft, Check, X, Eye, RefreshCcw } from 'lucide-react';
 import { KanjiWord } from '../../types';
 import { Card } from '../ui/Card';
+import { useLearning } from '../../contexts/LearningContext';
 
 interface KanjiWritingQuizProps {
   kanjis: KanjiWord[];
@@ -9,6 +10,7 @@ interface KanjiWritingQuizProps {
 }
 
 export default function KanjiWritingQuiz({ kanjis, onBack }: KanjiWritingQuizProps) {
+  const { recordExerciseResult } = useLearning();
   const [currentIndex, setCurrentIndex] = useState(0);
   const [isRevealed, setIsRevealed] = useState(false);
   const [selfAssessment, setSelfAssessment] = useState<boolean | null>(null);
@@ -28,6 +30,7 @@ export default function KanjiWritingQuiz({ kanjis, onBack }: KanjiWritingQuizPro
 
   const handleNext = (correct: boolean) => {
     setSelfAssessment(correct);
+    recordExerciseResult(currentItem.id, 'kanji', correct);
     if (correct) setScore(s => s + 1);
 
     setTimeout(() => {

@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { ArrowLeft, RefreshCcw, Sparkles } from 'lucide-react';
 import { Vocabulary, KanjiWord } from '../../types';
 import { Card } from '../ui/Card';
+import { useLearning } from '../../contexts/LearningContext';
 
 interface MatchingGameProps {
   items: Array<Vocabulary | KanjiWord>;
@@ -9,7 +10,8 @@ interface MatchingGameProps {
 }
 
 export default function MatchingGame({ items, onBack }: MatchingGameProps) {
-  const [gameItems, setGameItems] = useState<Array<{ id: string; text: string; meaning: string }>>([]);
+  const { recordExerciseResult } = useLearning();
+  const [gameItems, setGameItems] = useState<Array<{ id: string; text: string; meaning: string; type: 'vocab' | 'kanji' }>>([]);
   const [leftTiles, setLeftTiles] = useState<Array<{ id: string; text: string }>>([]);
   const [rightTiles, setRightTiles] = useState<Array<{ id: string; text: string }>>([]);
   
@@ -26,7 +28,8 @@ export default function MatchingGame({ items, onBack }: MatchingGameProps) {
     const parsed = subset.map(i => ({
       id: i.id,
       text: 'word' in i ? i.word : i.character,
-      meaning: i.meaning
+      meaning: i.meaning,
+      type: ('word' in i ? 'vocab' : 'kanji') as 'vocab' | 'kanji',
     }));
 
     setGameItems(parsed);
@@ -60,6 +63,10 @@ export default function MatchingGame({ items, onBack }: MatchingGameProps) {
 
     setMoves(m => m + 1);
     if (leftId === rightId) {
+      const matchedItem = gameItems.find(i => i.id === leftId);
+      if (matchedItem) {
+        recordExerciseResult(matchedItem.id, matchedItem.type, true);
+      }
       setMatchedIds(prev => {
         const next = new Set(prev).add(leftId);
         if (next.size === gameItems.length) {
@@ -70,6 +77,10 @@ export default function MatchingGame({ items, onBack }: MatchingGameProps) {
       setSelectedLeft(null);
       setSelectedRight(null);
     } else {
+      const wrongItem = gameItems.find(i => i.id === leftId);
+      if (wrongItem) {
+        recordExerciseResult(wrongItem.id, wrongItem.type, false);
+      }
       setWrongPair(true);
       setTimeout(() => {
         setSelectedLeft(null);

@@ -11,7 +11,7 @@ import {
 import { createDefaultProgress } from '../engine/srsEngine';
 
 const STORAGE_KEY = 'dekiru_learning_data';
-const CURRENT_VERSION = 1;
+const CURRENT_VERSION = 2;
 
 /**
  * Default user settings.
@@ -142,7 +142,13 @@ function migrateFromOldFormat(): LearningData {
  * Migrate data between versions.
  */
 function migrateData(data: LearningData): LearningData {
-  // Future version migrations go here
+  if (data.version < 2) {
+    for (const progress of Object.values(data.progress)) {
+      if (progress.exerciseCorrectCount === undefined) {
+        progress.exerciseCorrectCount = 0;
+      }
+    }
+  }
   data.version = CURRENT_VERSION;
   return data;
 }

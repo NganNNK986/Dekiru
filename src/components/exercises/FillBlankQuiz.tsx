@@ -1,7 +1,8 @@
 import React, { useState, useMemo } from 'react';
-import { ArrowLeft, CheckCircle2, XCircle, RefreshCcw } from 'lucide-react';
+import { ArrowLeft, RefreshCcw } from 'lucide-react';
 import { Vocabulary } from '../../types';
 import { Card } from '../ui/Card';
+import { useLearning } from '../../contexts/LearningContext';
 
 interface FillBlankQuizProps {
   words: Vocabulary[];
@@ -9,6 +10,7 @@ interface FillBlankQuizProps {
 }
 
 export default function FillBlankQuiz({ words, onBack }: FillBlankQuizProps) {
+  const { recordExerciseResult } = useLearning();
   const validWords = useMemo(() => {
     return words.filter(w => w.collocation && w.collocation.includes(w.word));
   }, [words]);
@@ -52,7 +54,9 @@ export default function FillBlankQuiz({ words, onBack }: FillBlankQuizProps) {
     if (selectedOption || !currentQuestion) return;
     setSelectedOption(option);
 
-    if (option === currentQuestion.correctWord) {
+    const isCorrect = option === currentQuestion.correctWord;
+    recordExerciseResult(currentQuestion.id, 'vocab', isCorrect);
+    if (isCorrect) {
       setScore(s => s + 1);
     }
 

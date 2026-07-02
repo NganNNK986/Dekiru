@@ -111,6 +111,7 @@ export function createDefaultProgress(
     lapses: 0,
     scaffoldStage: 'discover',
     isStarred: false,
+    exerciseCorrectCount: 0,
     createdAt: now,
     updatedAt: now,
   };
