@@ -10,10 +10,12 @@ import TestSetup from './components/TestSetup';
 import QuizView from './components/QuizView';
 import MultipleChoiceQuiz from './components/MultipleChoiceQuiz';
 import GrammarView from './components/GrammarView';
+import GrammarQuizView from './components/GrammarQuizView';
+import { grammarQuizData } from './grammarQuizData';
 import { lessons, vocabularyData, kanjiData } from './data';
 
 export default function App() {
-  const [view, setView] = useState<'dashboard' | 'lesson' | 'test-setup' | 'quiz' | 'starred-review' | 'multiple-choice' | 'grammar'>('dashboard');
+  const [view, setView] = useState<'dashboard' | 'lesson' | 'test-setup' | 'quiz' | 'starred-review' | 'multiple-choice' | 'grammar' | 'grammar-quiz'>('dashboard');
   const [activeLessonId, setActiveLessonId] = useState<string | null>(null);
   const [testLessonIds, setTestLessonIds] = useState<string[]>([]);
   const [testType, setTestType] = useState<'vocab' | 'kanji' | 'mixed'>('mixed');
@@ -80,6 +82,10 @@ export default function App() {
 
   const handleShowGrammar = () => {
     setView('grammar');
+  };
+
+  const handleStartGrammarQuiz = () => {
+    setView('grammar-quiz');
   };
 
   const handleStartQuiz = (lessonIds: string[], type: 'vocab' | 'kanji' | 'mixed') => {
@@ -225,7 +231,17 @@ export default function App() {
         })()}
 
         {view === 'grammar' && (
-          <GrammarView onBack={handleBackToDashboard} />
+          <GrammarView 
+            onBack={handleBackToDashboard} 
+            onStartQuiz={handleStartGrammarQuiz}
+          />
+        )}
+
+        {view === 'grammar-quiz' && (
+          <GrammarQuizView 
+            questions={grammarQuizData}
+            onBack={() => setView('grammar')}
+          />
         )}
       </main>
 
