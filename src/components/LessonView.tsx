@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { ArrowLeft, ChevronLeft, ChevronRight, List, Keyboard, Edit3, PenTool, Sparkles } from 'lucide-react';
 import { Vocabulary, KanjiWord } from '../types';
@@ -38,14 +38,38 @@ export default function LessonView({
   onStartMatching,
   onNavigateToItem
 }: LessonViewProps) {
-  const [activeTab, setActiveTab] = useState<'vocab' | 'kanji'>('vocab');
-  const [currentIndex, setCurrentIndex] = useState(0);
+  const [activeTab, setActiveTab] = useState<'vocab' | 'kanji'>(() => {
+    const saved = localStorage.getItem(`flashcard_tab_${title}`);
+    if (saved === 'kanji' && kanjis.length > 0) return 'kanji';
+    if (saved === 'vocab' && words.length === 0 && kanjis.length > 0) return 'kanji';
+    return 'vocab';
+  });
+  const [vocabIndex, setVocabIndex] = useState(() => {
+    return parseInt(localStorage.getItem(`flashcard_vocab_index_${title}`) || '0', 10);
+  });
+  const [kanjiIndex, setKanjiIndex] = useState(() => {
+    return parseInt(localStorage.getItem(`flashcard_kanji_index_${title}`) || '0', 10);
+  });
 
+  useEffect(() => {
+    localStorage.setItem(`flashcard_tab_${title}`, activeTab);
+  }, [activeTab, title]);
+
+  useEffect(() => {
+    localStorage.setItem(`flashcard_vocab_index_${title}`, vocabIndex.toString());
+  }, [vocabIndex, title]);
+
+  useEffect(() => {
+    localStorage.setItem(`flashcard_kanji_index_${title}`, kanjiIndex.toString());
+  }, [kanjiIndex, title]);
+
+  const safeVocabIndex = words.length > 0 ? Math.min(vocabIndex, words.length - 1) : 0;
+  const safeKanjiIndex = kanjis.length > 0 ? Math.min(kanjiIndex, kanjis.length - 1) : 0;
+  const currentIndex = activeTab === 'vocab' ? safeVocabIndex : safeKanjiIndex;
   const currentList = activeTab === 'vocab' ? words : kanjis;
 
   const handleTabSwitch = (tab: 'vocab' | 'kanji') => {
     setActiveTab(tab);
-    setCurrentIndex(0);
   };
 
   if (words.length === 0 && kanjis.length === 0) return (
@@ -59,8 +83,20 @@ export default function LessonView({
 
   const currentItem = currentList[currentIndex];
 
-  const goNext = () => setCurrentIndex((prev) => Math.min(prev + 1, currentList.length - 1));
-  const goPrev = () => setCurrentIndex((prev) => Math.max(prev - 1, 0));
+  const goNext = () => {
+    if (activeTab === 'vocab') {
+      setVocabIndex((prev) => Math.min(prev + 1, words.length - 1));
+    } else {
+      setKanjiIndex((prev) => Math.min(prev + 1, kanjis.length - 1));
+    }
+  };
+  const goPrev = () => {
+    if (activeTab === 'vocab') {
+      setVocabIndex((prev) => Math.max(prev - 1, 0));
+    } else {
+      setKanjiIndex((prev) => Math.max(prev - 1, 0));
+    }
+  };
 
   return (
     <div className="max-w-4xl mx-auto space-y-6">
