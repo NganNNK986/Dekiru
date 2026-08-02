@@ -14,6 +14,7 @@ import GrammarQuizView from './components/GrammarQuizView';
 import { grammarQuizData } from './grammarQuizData';
 import { lessons, vocabularyData, kanjiData } from './data';
 import { LearningProvider } from './contexts/LearningContext';
+import { Vocabulary } from './types';
 
 class ErrorBoundary extends React.Component<{children: React.ReactNode}, {hasError: boolean, error: Error | null}> {
   constructor(props: {children: React.ReactNode}) {
@@ -241,6 +242,20 @@ export default function App() {
             title = lesson ? `Trắc nghiệm: ${lesson.title}` : 'Trắc nghiệm';
             words = vocabularyData.filter((v) => v.lessonId === activeLessonId);
             kanjis = kanjiData.filter((k) => k.lessonId === activeLessonId);
+            
+            // Include Kanji Examples as vocabulary items
+            const kanjiExamplesAsVocab = kanjis.flatMap(k => 
+              k.examples.map((ex, idx) => ({
+                id: `${k.id}-ex-${idx}`,
+                word: ex.word,
+                furigana: ex.reading,
+                meaning: ex.meaning,
+                reading: ex.reading,
+                lessonId: k.lessonId,
+                visualClue: '', soundMnemonic: '', wackyStory: '', kanjiDeconstruction: [], logicalAnchor: '', collocation: ''
+              } as Vocabulary))
+            );
+            words = [...words, ...kanjiExamplesAsVocab];
           } else {
             // For starred review
             title = 'Trắc nghiệm: Mục đã lưu';
