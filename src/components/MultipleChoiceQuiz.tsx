@@ -4,6 +4,7 @@ import { ArrowLeft, RefreshCcw, Check, X } from 'lucide-react';
 import { Vocabulary, KanjiWord } from '../types';
 import { Card } from './ui/Card';
 import { useLearning } from '../contexts/LearningContext';
+// Trigger HMR
 
 interface MultipleChoiceQuizProps {
   title: string;

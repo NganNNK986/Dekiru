@@ -4,6 +4,7 @@ import { ArrowLeft, RefreshCcw, CheckCircle, XCircle } from 'lucide-react';
 import { vocabularyData, kanjiData } from '../data';
 import { Card, CardContent } from './ui/Card';
 import { Vocabulary, KanjiWord } from '../types';
+// Trigger HMR
 
 interface QuizViewProps {
   lessonIds: string[];

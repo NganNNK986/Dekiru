@@ -3,7 +3,7 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, ErrorInfo } from 'react';
 import Dashboard from './components/Dashboard';
 import LessonView from './components/LessonView';
 import TestSetup from './components/TestSetup';
@@ -13,6 +13,32 @@ import GrammarView from './components/GrammarView';
 import GrammarQuizView from './components/GrammarQuizView';
 import { grammarQuizData } from './grammarQuizData';
 import { lessons, vocabularyData, kanjiData } from './data';
+import { LearningProvider } from './contexts/LearningContext';
+
+class ErrorBoundary extends React.Component<{children: React.ReactNode}, {hasError: boolean, error: Error | null}> {
+  constructor(props: {children: React.ReactNode}) {
+    super(props);
+    this.state = { hasError: false, error: null };
+  }
+  static getDerivedStateFromError(error: Error) {
+    return { hasError: true, error };
+  }
+  componentDidCatch(error: Error, errorInfo: ErrorInfo) {
+    console.error("ErrorBoundary caught an error", error, errorInfo);
+  }
+  render() {
+    if (this.state.hasError) {
+      return (
+        <div style={{ padding: '2rem', color: 'red', backgroundColor: 'white' }}>
+          <h2>Something went wrong.</h2>
+          <pre style={{ whiteSpace: 'pre-wrap' }}>{this.state.error?.toString()}</pre>
+          <pre style={{ whiteSpace: 'pre-wrap', fontSize: '12px' }}>{this.state.error?.stack}</pre>
+        </div>
+      );
+    }
+    return this.props.children;
+  }
+}
 
 export default function App() {
   const [view, setView] = useState<'dashboard' | 'lesson' | 'test-setup' | 'quiz' | 'starred-review' | 'multiple-choice' | 'grammar' | 'grammar-quiz'>('dashboard');
@@ -105,9 +131,11 @@ export default function App() {
   };
 
   return (
-    <div className="min-h-screen bg-sakura-50 font-sans selection:bg-pink-200">
-      
-      {/* Universal header nav */}
+    <ErrorBoundary>
+      <LearningProvider>
+      <div className="min-h-screen bg-sakura-50 font-sans selection:bg-pink-200">
+        
+        {/* Universal header nav */}
       <header className="bg-white/70 backdrop-blur-md sticky top-0 z-50 border-b border-pink-100/50">
         <div className="max-w-6xl mx-auto px-6 h-16 flex items-center justify-between">
           <button 
@@ -246,5 +274,7 @@ export default function App() {
       </main>
 
     </div>
+    </LearningProvider>
+    </ErrorBoundary>
   );
 }
