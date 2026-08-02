@@ -32,10 +32,11 @@ export interface Vocabulary {
     wackyStory: string;
     
     // Method 2: Deep Learning
-    kanjiDeconstruction: KanjiPart[];
+    kanjiDeconstruction: (KanjiPart | string)[];
     logicalAnchor: string;
     collocation: string;
-    collocationMeaning: string;
+    collocationMeaning?: string;
+    reading?: string;
 }
 
 export interface Lesson {

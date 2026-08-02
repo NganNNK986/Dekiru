@@ -42,7 +42,7 @@ export const grammarQuizData: GrammarQuestion[] = [
   // 5
   {
     id: "gq-5",
-    question: "あのような______人が好きです。",
+    question: "あの俳優______人が好きです。",
     options: ["のように", "のような", "みたいに", "くらい"],
     correctAnswerIndex: 1,
     explanation: "「のような」bổ nghĩa cho danh từ (人). Nghĩa là \"người giống như vậy\"."

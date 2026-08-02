@@ -11,15 +11,16 @@ interface LessonViewProps {
   words: Vocabulary[];
   kanjis: KanjiWord[];
   onBack: () => void;
-  isStarred: (id: string) => boolean;
+  starredIds: Set<string>;
+  starredKanjiIds: Set<string>;
   onToggleStar: (id: string, type: 'vocab' | 'kanji') => void;
   blurFurigana: boolean;
-  onStartMultipleChoice: () => void;
-  onStartTyping: () => void;
-  onStartFillBlank: () => void;
-  onStartKanjiWriting: () => void;
-  onStartMatching: () => void;
-  onNavigateToItem: (id: string, type: 'vocab' | 'kanji') => void;
+  onStartMultipleChoice?: () => void;
+  onStartTyping?: () => void;
+  onStartFillBlank?: () => void;
+  onStartKanjiWriting?: () => void;
+  onStartMatching?: () => void;
+  onNavigateToItem?: (id: string, type: 'vocab' | 'kanji') => void;
 }
 
 export default function LessonView({
@@ -28,7 +29,8 @@ export default function LessonView({
   words,
   kanjis,
   onBack,
-  isStarred,
+  starredIds,
+  starredKanjiIds,
   onToggleStar,
   blurFurigana,
   onStartMultipleChoice,
@@ -124,40 +126,51 @@ export default function LessonView({
       {/* Practice Mode Selector Grid */}
       <div className="bg-white p-4 rounded-2xl shadow-sm border border-pink-100/60 flex flex-wrap items-center justify-center gap-2">
         <span className="text-xs font-black uppercase text-slate-400 mr-2">Luyện tập:</span>
-        <button
-          onClick={onStartMultipleChoice}
-          disabled={words.length + kanjis.length < 4}
-          className="px-3.5 py-2 bg-pink-50 hover:bg-pink-100 text-pink-700 font-bold rounded-xl text-xs flex items-center gap-1.5 transition-all"
-        >
-          <List size={14} /> Trắc nghiệm
-        </button>
-        <button
-          onClick={onStartMatching}
-          disabled={words.length + kanjis.length < 3}
-          className="px-3.5 py-2 bg-purple-50 hover:bg-purple-100 text-purple-700 font-bold rounded-xl text-xs flex items-center gap-1.5 transition-all"
-        >
-          <Sparkles size={14} /> Nối cặp
-        </button>
-        <button
-          onClick={onStartTyping}
-          className="px-3.5 py-2 bg-blue-50 hover:bg-blue-100 text-blue-700 font-bold rounded-xl text-xs flex items-center gap-1.5 transition-all"
-        >
-          <Keyboard size={14} /> Gõ từ (Active Recall)
-        </button>
-        <button
-          onClick={onStartFillBlank}
-          disabled={words.length === 0}
-          className="px-3.5 py-2 bg-amber-50 hover:bg-amber-100 text-amber-700 font-bold rounded-xl text-xs flex items-center gap-1.5 transition-all"
-        >
-          <Edit3 size={14} /> Điền từ ngữ cảnh
-        </button>
-        <button
-          onClick={onStartKanjiWriting}
-          disabled={kanjis.length === 0}
-          className="px-3.5 py-2 bg-emerald-50 hover:bg-emerald-100 text-emerald-700 font-bold rounded-xl text-xs flex items-center gap-1.5 transition-all"
-        >
-          <PenTool size={14} /> Luyện viết Kanji
-        </button>
+        {onStartMultipleChoice && (
+          <button
+            onClick={onStartMultipleChoice}
+            disabled={words.length + kanjis.length < 4}
+            className="px-3.5 py-2 bg-pink-50 hover:bg-pink-100 text-pink-700 font-bold rounded-xl text-xs flex items-center gap-1.5 transition-all"
+          >
+            <List size={14} /> Trắc nghiệm
+          </button>
+        )}
+        {onStartMatching && (
+          <button
+            onClick={onStartMatching}
+            disabled={words.length + kanjis.length < 3}
+            className="px-3.5 py-2 bg-purple-50 hover:bg-purple-100 text-purple-700 font-bold rounded-xl text-xs flex items-center gap-1.5 transition-all"
+          >
+            <Sparkles size={14} /> Nối cặp
+          </button>
+        )}
+        {onStartTyping && (
+          <button
+            onClick={onStartTyping}
+            disabled={words.length === 0}
+            className="px-3.5 py-2 bg-blue-50 hover:bg-blue-100 text-blue-700 font-bold rounded-xl text-xs flex items-center gap-1.5 transition-all"
+          >
+            <Keyboard size={14} /> Gõ từ (Romaji)
+          </button>
+        )}
+        {onStartFillBlank && (
+          <button
+            onClick={onStartFillBlank}
+            disabled={words.length < 3}
+            className="px-3.5 py-2 bg-amber-50 hover:bg-amber-100 text-amber-700 font-bold rounded-xl text-xs flex items-center gap-1.5 transition-all"
+          >
+            <Edit3 size={14} /> Điền từ ngữ cảnh
+          </button>
+        )}
+        {onStartKanjiWriting && (
+          <button
+            onClick={onStartKanjiWriting}
+            disabled={kanjis.length === 0}
+            className="px-3.5 py-2 bg-emerald-50 hover:bg-emerald-100 text-emerald-700 font-bold rounded-xl text-xs flex items-center gap-1.5 transition-all"
+          >
+            <PenTool size={14} /> Luyện viết Kanji
+          </button>
+        )}
       </div>
 
       {/* Tabs */}
@@ -194,18 +207,18 @@ export default function LessonView({
               {activeTab === 'vocab' ? (
                 <WordCard 
                   word={currentItem as Vocabulary}
-                  isStarred={isStarred(currentItem.id)}
+                  isStarred={starredIds.has(currentItem.id)}
                   onToggleStar={() => onToggleStar(currentItem.id, 'vocab')}
                   blurFurigana={blurFurigana}
-                  onNavigateKanji={(kId) => onNavigateToItem(kId, 'kanji')}
+                  onNavigateKanji={onNavigateToItem ? ((kId) => onNavigateToItem(kId, 'kanji')) : undefined}
                 />
               ) : (
                 <KanjiCard 
                   kanji={currentItem as KanjiWord}
-                  isStarred={isStarred(currentItem.id)}
+                  isStarred={starredKanjiIds.has(currentItem.id)}
                   onToggleStar={() => onToggleStar(currentItem.id, 'kanji')}
                   blurDetails={blurFurigana}
-                  onNavigateVocab={(vId) => onNavigateToItem(vId, 'vocab')}
+                  onNavigateVocab={onNavigateToItem ? ((vId) => onNavigateToItem(vId, 'vocab')) : undefined}
                 />
               )}
             </motion.div>
