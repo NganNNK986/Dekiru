@@ -3,49 +3,93 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import Dashboard from './components/Dashboard';
 import LessonView from './components/LessonView';
 import TestSetup from './components/TestSetup';
 import QuizView from './components/QuizView';
 import MultipleChoiceQuiz from './components/MultipleChoiceQuiz';
-import SRSReviewSession from './components/SRSReviewSession';
-import ProgressDashboard from './components/ProgressDashboard';
-import TypingQuiz from './components/exercises/TypingQuiz';
-import FillBlankQuiz from './components/exercises/FillBlankQuiz';
-import KanjiWritingQuiz from './components/exercises/KanjiWritingQuiz';
-import MatchingGame from './components/exercises/MatchingGame';
-import { LearningProvider, useLearning } from './contexts/LearningContext';
+import GrammarView from './components/GrammarView';
 import { lessons, vocabularyData, kanjiData } from './data';
 
-type AppView = 
-  | 'dashboard' 
-  | 'lesson' 
-  | 'test-setup' 
-  | 'quiz' 
-  | 'starred-review' 
-  | 'multiple-choice'
-  | 'srs-review'
-  | 'analytics'
-  | 'typing'
-  | 'fill-blank'
-  | 'kanji-writing'
-  | 'matching';
-
-function MainApp() {
-  const [view, setView] = useState<AppView>('dashboard');
+export default function App() {
+  const [view, setView] = useState<'dashboard' | 'lesson' | 'test-setup' | 'quiz' | 'starred-review' | 'multiple-choice' | 'grammar'>('dashboard');
   const [activeLessonId, setActiveLessonId] = useState<string | null>(null);
-  const [exerciseContext, setExerciseContext] = useState<'lesson' | 'starred'>('lesson');
   const [testLessonIds, setTestLessonIds] = useState<string[]>([]);
   const [testType, setTestType] = useState<'vocab' | 'kanji' | 'mixed'>('mixed');
   const [blurFurigana, setBlurFurigana] = useState(true);
 
-  const { toggleStar, isStarred } = useLearning();
+  // Starred words state with LocalStorage persistence
+  const [starredIds, setStarredIds] = useState<Set<string>>(() => {
+    try {
+      const stored = localStorage.getItem('sakura_starred');
+      return stored ? new Set(JSON.parse(stored)) : new Set();
+    } catch {
+      return new Set();
+    }
+  });
+
+  const [starredKanjiIds, setStarredKanjiIds] = useState<Set<string>>(() => {
+    try {
+      const stored = localStorage.getItem('sakura_kanji_starred');
+      return stored ? new Set(JSON.parse(stored)) : new Set();
+    } catch {
+      return new Set();
+    }
+  });
+
+  useEffect(() => {
+    localStorage.setItem('sakura_starred', JSON.stringify(Array.from(starredIds)));
+  }, [starredIds]);
+
+  useEffect(() => {
+    localStorage.setItem('sakura_kanji_starred', JSON.stringify(Array.from(starredKanjiIds)));
+  }, [starredKanjiIds]);
+
+  const toggleStar = (id: string, type: 'vocab' | 'kanji', forceStatus?: boolean) => {
+    const setState = type === 'vocab' ? setStarredIds : setStarredKanjiIds;
+    
+    setState(prev => {
+      const newSet = new Set(prev);
+      if (forceStatus !== undefined) {
+        if (forceStatus) newSet.add(id);
+        else newSet.delete(id);
+      } else {
+        if (newSet.has(id)) {
+          newSet.delete(id);
+        } else {
+          newSet.add(id);
+        }
+      }
+      return newSet;
+    });
+  };
 
   const handleSelectLesson = (id: string) => {
     setActiveLessonId(id);
-    setExerciseContext('lesson');
     setView('lesson');
+  };
+
+  const handleStartMultipleChoice = () => {
+    setView('multiple-choice');
+  };
+
+  const handleSetupTest = () => {
+    setView('test-setup');
+  };
+
+  const handleShowGrammar = () => {
+    setView('grammar');
+  };
+
+  const handleStartQuiz = (lessonIds: string[], type: 'vocab' | 'kanji' | 'mixed') => {
+    setTestLessonIds(lessonIds);
+    setTestType(type);
+    setView('quiz');
+  };
+
+  const handleReviewStarred = () => {
+    setView('starred-review');
   };
 
   const handleBackToDashboard = () => {
@@ -58,7 +102,7 @@ function MainApp() {
     <div className="min-h-screen bg-sakura-50 font-sans selection:bg-pink-200">
       
       {/* Universal header nav */}
-      <header className="bg-white/70 backdrop-blur-md sticky top-0 z-50 border-b border-pink-100/50 shadow-xs">
+      <header className="bg-white/70 backdrop-blur-md sticky top-0 z-50 border-b border-pink-100/50">
         <div className="max-w-6xl mx-auto px-6 h-16 flex items-center justify-between">
           <button 
             onClick={handleBackToDashboard}
@@ -90,23 +134,12 @@ function MainApp() {
         {view === 'dashboard' && (
           <Dashboard 
             onSelectLesson={handleSelectLesson} 
-            onSetupTest={() => setView('test-setup')} 
-            onReviewStarred={() => {
-              setActiveLessonId(null);
-              setExerciseContext('starred');
-              setView('starred-review');
-            }}
-            onStartSRS={() => setView('srs-review')}
-            onOpenAnalytics={() => setView('analytics')}
+            onSetupTest={handleSetupTest} 
+            starredWordsCount={starredIds.size}
+            starredKanjiCount={starredKanjiIds.size}
+            onReviewStarred={handleReviewStarred}
+            onShowGrammar={handleShowGrammar}
           />
-        )}
-
-        {view === 'srs-review' && (
-          <SRSReviewSession onBack={handleBackToDashboard} />
-        )}
-
-        {view === 'analytics' && (
-          <ProgressDashboard onBack={handleBackToDashboard} />
         )}
         
         {view === 'lesson' && activeLessonId && (() => {
@@ -120,28 +153,18 @@ function MainApp() {
               words={words}
               kanjis={kanjis}
               onBack={handleBackToDashboard}
-              isStarred={isStarred}
+              starredIds={starredIds}
+              starredKanjiIds={starredKanjiIds}
               onToggleStar={toggleStar}
               blurFurigana={blurFurigana}
-              onStartMultipleChoice={() => setView('multiple-choice')}
-              onStartTyping={() => setView('typing')}
-              onStartFillBlank={() => setView('fill-blank')}
-              onStartKanjiWriting={() => setView('kanji-writing')}
-              onStartMatching={() => setView('matching')}
-              onNavigateToItem={(id, type) => {
-                // Find lesson containing this item and navigate
-                const targetLessonId = type === 'vocab' 
-                  ? vocabularyData.find(v => v.id === id)?.lessonId
-                  : kanjiData.find(k => k.id === id)?.lessonId;
-                if (targetLessonId) setActiveLessonId(targetLessonId);
-              }}
+              onStartMultipleChoice={handleStartMultipleChoice}
             />
           );
         })()}
 
         {view === 'starred-review' && (() => {
-           const words = vocabularyData.filter((v) => isStarred(v.id));
-           const kanjis = kanjiData.filter((k) => isStarred(k.id));
+           const words = vocabularyData.filter((v) => starredIds.has(v.id));
+           const kanjis = kanjiData.filter((k) => starredKanjiIds.has(k.id));
            return (
             <LessonView 
               title="Ôn tập mục đã lưu"
@@ -149,15 +172,11 @@ function MainApp() {
               words={words}
               kanjis={kanjis}
               onBack={handleBackToDashboard}
-              isStarred={isStarred}
+              starredIds={starredIds}
+              starredKanjiIds={starredKanjiIds}
               onToggleStar={toggleStar}
               blurFurigana={blurFurigana}
-              onStartMultipleChoice={() => setView('multiple-choice')}
-              onStartTyping={() => setView('typing')}
-              onStartFillBlank={() => setView('fill-blank')}
-              onStartKanjiWriting={() => setView('kanji-writing')}
-              onStartMatching={() => setView('matching')}
-              onNavigateToItem={() => {}}
+              onStartMultipleChoice={handleStartMultipleChoice}
             />
            );
         })()}
@@ -165,11 +184,7 @@ function MainApp() {
         {view === 'test-setup' && (
           <TestSetup 
             onBack={handleBackToDashboard} 
-            onStartQuiz={(lessonIds, type) => {
-              setTestLessonIds(lessonIds);
-              setTestType(type);
-              setView('quiz');
-            }} 
+            onStartQuiz={handleStartQuiz} 
           />
         )}
 
@@ -178,25 +193,25 @@ function MainApp() {
             lessonIds={testLessonIds} 
             testType={testType}
             onBack={handleBackToDashboard} 
-            onMarkStarred={(id, type) => toggleStar(id, type)}
+            onMarkStarred={(id, type) => toggleStar(id, type, true)}
           />
         )}
 
-        {/* Exercises */}
         {view === 'multiple-choice' && (() => {
           let title = '';
           let words = [];
           let kanjis = [];
 
-          if (exerciseContext === 'lesson' && activeLessonId) {
+          if (activeLessonId) {
             const lesson = lessons.find((l) => l.id === activeLessonId);
             title = lesson ? `Trắc nghiệm: ${lesson.title}` : 'Trắc nghiệm';
             words = vocabularyData.filter((v) => v.lessonId === activeLessonId);
             kanjis = kanjiData.filter((k) => k.lessonId === activeLessonId);
           } else {
+            // For starred review
             title = 'Trắc nghiệm: Mục đã lưu';
-            words = vocabularyData.filter((v) => isStarred(v.id));
-            kanjis = kanjiData.filter((k) => isStarred(k.id));
+            words = vocabularyData.filter((v) => starredIds.has(v.id));
+            kanjis = kanjiData.filter((k) => starredKanjiIds.has(k.id));
           }
 
           return (
@@ -204,47 +219,16 @@ function MainApp() {
               title={title}
               words={words}
               kanjis={kanjis}
-              onBack={() => setView(exerciseContext === 'starred' ? 'starred-review' : 'lesson')}
+              onBack={() => setView(activeLessonId ? 'lesson' : 'starred-review')}
             />
           );
         })()}
 
-        {view === 'typing' && (() => {
-          const items = exerciseContext === 'lesson' && activeLessonId
-            ? [...vocabularyData.filter(v => v.lessonId === activeLessonId), ...kanjiData.filter(k => k.lessonId === activeLessonId)]
-            : [...vocabularyData.filter(v => isStarred(v.id)), ...kanjiData.filter(k => isStarred(k.id))];
-          return <TypingQuiz items={items} onBack={() => setView(exerciseContext === 'starred' ? 'starred-review' : 'lesson')} />;
-        })()}
-
-        {view === 'fill-blank' && (() => {
-          const words = exerciseContext === 'lesson' && activeLessonId
-            ? vocabularyData.filter(v => v.lessonId === activeLessonId)
-            : vocabularyData.filter(v => isStarred(v.id));
-          return <FillBlankQuiz words={words} onBack={() => setView(exerciseContext === 'starred' ? 'starred-review' : 'lesson')} />;
-        })()}
-
-        {view === 'kanji-writing' && (() => {
-          const kanjis = exerciseContext === 'lesson' && activeLessonId
-            ? kanjiData.filter(k => k.lessonId === activeLessonId)
-            : kanjiData.filter(k => isStarred(k.id));
-          return <KanjiWritingQuiz kanjis={kanjis} onBack={() => setView(exerciseContext === 'starred' ? 'starred-review' : 'lesson')} />;
-        })()}
-
-        {view === 'matching' && (() => {
-          const items = exerciseContext === 'lesson' && activeLessonId
-            ? [...vocabularyData.filter(v => v.lessonId === activeLessonId), ...kanjiData.filter(k => k.lessonId === activeLessonId)]
-            : [...vocabularyData.filter(v => isStarred(v.id)), ...kanjiData.filter(k => isStarred(k.id))];
-          return <MatchingGame items={items} onBack={() => setView(exerciseContext === 'starred' ? 'starred-review' : 'lesson')} />;
-        })()}
+        {view === 'grammar' && (
+          <GrammarView onBack={handleBackToDashboard} />
+        )}
       </main>
-    </div>
-  );
-}
 
-export default function App() {
-  return (
-    <LearningProvider>
-      <MainApp />
-    </LearningProvider>
+    </div>
   );
 }
